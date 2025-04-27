@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  backend:
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+    image: solar-app-backend:latest
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+      - MONGO_USERNAME=yourUsername
+      - MONGO_PASSWORD=yourPassword
+    ports:
+      - "3000:3000"
+    networks: 
+     - app-network
+  
+  mongo:
+    build: 
+      context: ./database
+      dockerfile: Dockerfile
+    image: solar-app-database:latest
+    restart: always
+    volumes: 
+      - mongodb_data:/data/db
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=yourUsername
+      - MONGO_INITDB_ROOT_PASSWORD=yourPassword
+    networks: 
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes: 
+  mongodb_data:
