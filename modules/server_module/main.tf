@@ -121,11 +121,10 @@ resource "aws_vpc_security_group_egress_rule" "allow_all" {
 
 
 
-
 # Instance resource
 resource "aws_instance" "server" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.medium"
+  instance_type          = "${var.instance_type}"
   key_name               = aws_key_pair.server_key.key_name
   vpc_security_group_ids = [aws_security_group.k8s_cluster_sg.id]
   subnet_id             = aws_subnet.subnet_server.id  
@@ -203,5 +202,4 @@ resource "null_resource" "apply_manifest" {
   }
 
   depends_on = [null_resource.copy_file]  # Ensure the file is copied before applying
-}
-*/
+}*/

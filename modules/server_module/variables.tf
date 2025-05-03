@@ -35,3 +35,7 @@ variable "is_worker" {
   type    = bool
   default = false
 }
+
+variable "instance_type" {
+  
+}
