@@ -57,6 +57,9 @@ pipeline {
         }
 
         stage('Terraform') {
+            options {
+              retry(2) // retry this stage up to 2 more times if it fails
+            }
             steps {
                 script {
                         sh """
