@@ -16,23 +16,56 @@ pipeline {
                     echo "Repository checkout successful"
                     // Set GIT_COMMIT variable
                     env.GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    sh """
-                       echo Checked out commit: ${env.GIT_COMMIT}
-                       echo "GIT_COMMIT=${env.GIT_COMMIT}" > .env
-                       cat .env
-                    """
-
+                    sh "echo Checked out commit: ${env.GIT_COMMIT}"
+                    // Set IMAGE_NAME variable
+                    env.IMAGE_NAME = "${DOCKER_HUB_REPO}/${PROJECT_NAME}:${env.GIT_COMMIT}"
+                    sh "echo Global Image Name: ${env.IMAGE_NAME}"
                 }
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Build and tag images with Docker Compose
-                    sh 'docker-compose build'
+                    sh """
+                        docker build -t ${env.IMAGE_NAME} .
+                        echo "Built Docker image: ${env.IMAGE_NAME}"
+                    """
                 }
             }
         }
+
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                        sh """
+                           docker push ${env.IMAGE_NAME}
+                           echo "[DONE] Image pushed successfully: ${env.IMAGE_NAME}"
+                        """
+                }
+            }
+        }
+
+        stage('Terraform') {
+            steps {
+                script {
+                        sh """
+                           terraform init
+                           terraform apply
+                        """
+                }
+            }
+        }
+
     }
 }
