@@ -17,10 +17,7 @@ services:
      - app-network
   
   mongo:
-    build: 
-      context: ./database
-      dockerfile: Dockerfile
-    image: nagham94/solar-app-database:latest
+    image: mongo:8.0.5
     restart: always
     volumes: 
       - mongodb_data:/data/db
