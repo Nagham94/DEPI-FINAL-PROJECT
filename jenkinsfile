@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_REPO = 'nagham94' 
         GIT_REPO_URL = 'https://github.com/Nagham94/DEPI-FINAL-PROJECT.git'  
-        BRANCH_NAME = "aws-terra"
+        BRANCH_NAME = "jenkins"
     }
 
     stages {
@@ -16,7 +16,12 @@ pipeline {
                     echo "Repository checkout successful"
                     // Set GIT_COMMIT variable
                     env.GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    sh "echo Checked out commit: ${env.GIT_COMMIT}"
+                    sh """
+                       echo Checked out commit: ${env.GIT_COMMIT}
+                       echo "GIT_COMMIT=${env.GIT_COMMIT}" > .env
+                       cat .env
+                    """
+
                 }
             }
         }
