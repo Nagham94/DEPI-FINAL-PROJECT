@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_REPO = 'nagham94' 
+        GIT_REPO_URL = 'https://github.com/Nagham94/DEPI-FINAL-PROJECT.git'  
+        BRANCH_NAME = "aws-terra"
+    }
+
+    stages {
+        stage('Checkout Application Repository') {
+            steps {
+                script {
+                    deleteDir()  // Clears workspace before checking out repo
+                    git branch: BRANCH_NAME, credentialsId: 'github_token', url: GIT_REPO_URL
+                    echo "Repository checkout successful"
+                    // Set GIT_COMMIT variable
+                    env.GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    sh "echo Checked out commit: ${env.GIT_COMMIT}"
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Build and tag images with Docker Compose
+                    sh 'docker-compose build'
+                }
+            }
+        }
+    }
+}

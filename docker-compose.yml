@@ -4,7 +4,7 @@ services:
     build: 
       context: ./app
       dockerfile: Dockerfile
-    image: nagham94/solar-app-backend:latest
+    image: nagham94/solar-app-backend:${GIT_COMMIT}
     depends_on:
       - mongo
     environment:
@@ -20,7 +20,7 @@ services:
     build: 
       context: ./database
       dockerfile: Dockerfile
-    image: nagham94/solar-app-database:latest
+    image: nagham94/solar-app-database:${GIT_COMMIT}
     restart: always
     volumes: 
       - mongodb_data:/data/db
