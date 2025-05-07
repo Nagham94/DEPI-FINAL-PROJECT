@@ -72,4 +72,17 @@ pipeline {
         }
 
     }
+
+    post {
+      always {
+        // Clean up Docker images
+        script {
+        echo "Cleaning up Docker images to free disk space..."
+        // Remove the image built in this pipeline
+        sh "docker rmi -f ${env.IMAGE_NAME} || true"
+        // Remove dangling images that don’t have a tag (their tag shows as <none>)
+        sh "docker image prune -f"
+        }
+      }
+    }
 }
