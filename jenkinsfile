@@ -5,6 +5,7 @@ pipeline {
         DOCKER_HUB_REPO = 'nagham94' 
         GIT_REPO_URL = 'https://github.com/Nagham94/DEPI-FINAL-PROJECT.git'  
         BRANCH_NAME = "jenkins"
+        TECHNOLOGY_NAME = "solar-app-backend"
     }
 
     stages {
@@ -18,7 +19,7 @@ pipeline {
                     env.GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     sh "echo Checked out commit: ${env.GIT_COMMIT}"
                     // Set IMAGE_NAME variable
-                    env.IMAGE_NAME = "${DOCKER_HUB_REPO}/${PROJECT_NAME}:${env.GIT_COMMIT}"
+                    env.IMAGE_NAME = "${DOCKER_HUB_REPO}/${TECHNOLOGY_NAME}:${env.GIT_COMMIT}"
                     sh "echo Global Image Name: ${env.IMAGE_NAME}"
                 }
             }
@@ -50,7 +51,7 @@ pipeline {
                 script {
                         sh """
                            docker push ${env.IMAGE_NAME}
-                           echo "[DONE] Image pushed successfully: ${env.IMAGE_NAME}"
+                           echo "Image pushed successfully: ${env.IMAGE_NAME}"
                         """
                 }
             }
