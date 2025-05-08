@@ -1,7 +1,9 @@
 #!/bin/bash
+sudo hostnamectl set-hostname master
 
 # Log file path
 LOG_FILE="kubernetes_setup_log.txt"
+LOG_FILE2="kubeadm_join.txt"
 echo "Starting Kubernetes setup..." | tee -a $LOG_FILE
 
 echo "Running as user: $(whoami)" | tee -a $LOG_FILE
@@ -125,4 +127,4 @@ cat << "EOF" | tee -a $LOG_FILE
 
 EOF
 
-sudo kubeadm token create --print-join-command
+sudo kubeadm token create --print-join-command | tee -a $LOG_FILE2

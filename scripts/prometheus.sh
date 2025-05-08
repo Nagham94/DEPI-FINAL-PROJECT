@@ -1,5 +1,6 @@
 #!/bin/bash
-sudo hostnamectl set-hostname solar-node
+sudo hostnamectl set-hostname prometheus-node
+
 # Log file path
 LOG_FILE="kubernetes_setup_log.txt"
 
@@ -75,15 +76,13 @@ sudo apt-get install -y kubelet kubeadm kubectl
 echo "Marking Kubernetes packages on hold..."
 sudo apt-mark hold kubelet kubeadm kubectl
 
-
-
-
+# Install containerd (Kubernetes runtime)
 sudo apt-get install -y containerd
 sudo systemctl enable containerd
 sudo systemctl start containerd
 
-
-
+# Install Docker (if needed, not via snap)
+sudo apt-get install -y docker.io
 
 # Cool ASCII art for the end of the script - Happy Smiley Face
 cat << "EOF"

@@ -8,3 +8,8 @@ output "worker_server_public_ip" {
   value = module.worker.server_ip
   
 }
+output "prometheus_server_public_ip" {
+  description = "Public IP of the Prometheus server"
+  value = module.prometheus_server.server_ip
+  
+}

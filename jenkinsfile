@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_REPO = 'nagham94' 
+        GIT_REPO_URL = 'https://github.com/Nagham94/DEPI-FINAL-PROJECT.git'  
+        BRANCH_NAME = "jenkins"
+        TECHNOLOGY_NAME = "solar-app-backend"
+    }
+
+    stages {
+        stage('Checkout Application Repository') {
+            steps {
+                script {
+                    deleteDir()  // Clears workspace before checking out repo
+                    git branch: BRANCH_NAME, credentialsId: 'github_token', url: GIT_REPO_URL
+                    echo "Repository checkout successful"
+                    // Set GIT_COMMIT variable
+                    env.GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    sh "echo Checked out commit: ${env.GIT_COMMIT}"
+                    // Set IMAGE_NAME variable
+                    env.IMAGE_NAME = "${DOCKER_HUB_REPO}/${TECHNOLOGY_NAME}:${env.GIT_COMMIT}"
+                    sh "echo Global Image Name: ${env.IMAGE_NAME}"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                        docker build -t ${env.IMAGE_NAME} .
+                        echo "Built Docker image: ${env.IMAGE_NAME}"
+                    """
+                }
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                        sh """
+                           docker push ${env.IMAGE_NAME}
+                           echo "Image pushed successfully: ${env.IMAGE_NAME}"
+                        """
+                }
+            }
+        }
+
+        stage('Terraform') {
+            options {
+              retry(2) // retry this stage up to 2 more times if it fails
+            }
+            steps {
+                script {
+                        sh """
+                           terraform init
+                           terraform apply
+                        """
+                }
+            }
+        }
+
+    }
+
+    post {
+      always {
+        // Clean up Docker images
+        script {
+        echo "Cleaning up Docker images to free disk space..."
+        // Remove the image built in this pipeline
+        sh "docker rmi -f ${env.IMAGE_NAME} || true"
+        // Remove dangling images that don’t have a tag (their tag shows as <none>)
+        sh "docker image prune -f"
+        }
+      }
+    }
+}

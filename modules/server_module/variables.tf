@@ -6,24 +6,55 @@ variable "script_path" {
   
 }
 
-
-
 variable "is_file_copied" {
   default = false
   type = bool
 }
 
-variable "file_name" {
+variable "file_name_1" {
+  type = string
+  default = ""
+  description = "Flag to indicate if a file should be copied to the server"
+
+}
+variable "file_name_2" {
+  type = string
+  default = ""
+  description = "Flag to indicate if a file should be copied to the server"
+
+}
+variable "file_name_3" {
   type = string
   default = ""
   description = "Flag to indicate if a file should be copied to the server"
 
 }
 
-variable "subnet_cidr_block" {
-  type        = string
-  description = "CIDR block for the subnet"
+variable "file_name_4" {
+  type = string
+  default = ""
+  description = "Flag to indicate if a file should be copied to the server"
+
 }
+
+variable "file_name_5" {
+  type = string
+  default = ""
+  description = "Flag to indicate if a file should be copied to the server"
+
+}
+
+variable "file_name_6" {
+  type = string
+  default = ""
+  description = "Flag to indicate if a file should be copied to the server"
+
+}
+
+
+
+
+
 
 variable "is_master" {
   type    = bool
@@ -39,3 +70,13 @@ variable "is_worker" {
 variable "instance_type" {
   
 }
+
+
+variable "is_prom" {
+  type    = bool
+  default = false
+}
+
+
+
+

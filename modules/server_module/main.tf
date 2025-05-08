@@ -1,10 +1,18 @@
-# Fetch the default VPC
+
+/*
 data "aws_vpc" "default" {
   default = true
 }
 
 
-# Fetch the most recent Ubuntu AMI
+resource "aws_subnet" "shared" {
+  vpc_id            = data.aws_vpc.default.id
+  cidr_block        = "172.31.20.0/24"  
+  availability_zone = "us-east-1a"
+  tags = { Name = "shared-subnet" }
+}
+*/
+
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -18,10 +26,10 @@ data "aws_ami" "ubuntu" {
     values = ["hvm"]
   }
 
-  owners = ["099720109477"] # Canonical
+  owners = ["099720109477"] 
 }
 
-
+/*
 resource "aws_subnet" "subnet_server" {
   vpc_id            = data.aws_vpc.default.id
   cidr_block        = var.subnet_cidr_block
@@ -30,13 +38,16 @@ resource "aws_subnet" "subnet_server" {
   name = "subnet_server_${var.server_name}"
   }
 }
-# Security Group for Kubernetes Cluster (Master + Worker)
+*/
+
+
+
 resource "aws_security_group" "k8s_cluster_sg" {
   name        = "${var.server_name}-k8s-cluster-sg"
   description = "Security group for Kubernetes cluster nodes"
-  vpc_id      = data.aws_vpc.default.id
+#  vpc_id      = data.aws_vpc.default.id
 
-  tags = {
+  tags = {  
     Name = "${var.server_name}-k8s-cluster-sg"
   }
 }
@@ -48,6 +59,41 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
 }
+
+
+resource "aws_vpc_security_group_ingress_rule" "allow_kubelet" {
+  security_group_id = aws_security_group.k8s_cluster_sg.id
+  from_port         = 10250
+  to_port           = 10250
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+}
+
+
+resource "aws_vpc_security_group_ingress_rule" "allow_nodeport_for_app_solar" {
+  security_group_id = aws_security_group.k8s_cluster_sg.id
+  from_port         = 30004
+  to_port           = 30004
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+}
+resource "aws_vpc_security_group_ingress_rule" "allow_nodeport_for_metrices" {
+  security_group_id = aws_security_group.k8s_cluster_sg.id
+  from_port         = 9100
+  to_port           = 9100
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_nodeport_for_prom" {
+  security_group_id = aws_security_group.k8s_cluster_sg.id
+  from_port         = 30090
+  to_port           = 30090
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+}
+
+
 
 resource "aws_vpc_security_group_ingress_rule" "allow_k8s_api" {
   count             = var.is_master ? 1 : 0
@@ -67,13 +113,6 @@ resource "aws_vpc_security_group_ingress_rule" "allow_etcd" {
   ip_protocol       = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_kubelet" {
-  security_group_id = aws_security_group.k8s_cluster_sg.id
-  from_port         = 10250
-  to_port           = 10250
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "tcp"
-}
 
 resource "aws_vpc_security_group_ingress_rule" "allow_scheduler" {
   count             = var.is_master ? 1 : 0
@@ -93,8 +132,10 @@ resource "aws_vpc_security_group_ingress_rule" "allow_controller_manager" {
   ip_protocol       = "tcp"
 }
 
+
+
 resource "aws_vpc_security_group_ingress_rule" "allow_kube_proxy" {
-  count             = var.is_worker ? 1 : 0
+  count             = (var.is_worker || var.is_prom) ? 1 : 0
   security_group_id = aws_security_group.k8s_cluster_sg.id
   from_port         = 10256
   to_port           = 10256
@@ -102,18 +143,10 @@ resource "aws_vpc_security_group_ingress_rule" "allow_kube_proxy" {
   ip_protocol       = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_nodeport" {
-  security_group_id = aws_security_group.k8s_cluster_sg.id
-  from_port         = 30004
-  to_port           = 30004
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "tcp"
-}
+
 
 resource "aws_vpc_security_group_egress_rule" "allow_all" {
   security_group_id = aws_security_group.k8s_cluster_sg.id
-  from_port         = 0
-  to_port           = 0
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
@@ -121,13 +154,14 @@ resource "aws_vpc_security_group_egress_rule" "allow_all" {
 
 
 
-# Instance resource
+
+
 resource "aws_instance" "server" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "${var.instance_type}"
   key_name               = aws_key_pair.server_key.key_name
   vpc_security_group_ids = [aws_security_group.k8s_cluster_sg.id]
-  subnet_id             = aws_subnet.subnet_server.id  
+  subnet_id       = "subnet-0691c6585c0c3439e"
   associate_public_ip_address = true
   tags = {
     Name = "${var.server_name}-server"
@@ -137,7 +171,6 @@ resource "aws_instance" "server" {
 
 
 
-# Key pair for SSH access
 resource "aws_key_pair" "server_key" {
   key_name   = "${var.server_name}-key"
   public_key = file("~/.ssh/id_rsa.pub")
@@ -146,8 +179,8 @@ resource "aws_key_pair" "server_key" {
 
 
 
-resource "null_resource" "copy_file" {
-  count = "${var.is_file_copied ? 1 : 0}"
+resource "null_resource" "copy_all_files" {
+  count = var.is_file_copied ? 1 : 0
 
   connection {
     type        = "ssh"
@@ -157,14 +190,37 @@ resource "null_resource" "copy_file" {
   }
 
   provisioner "file" {
-    source = "${var.file_name}"
-    destination = "/home/ubuntu/${var.file_name}"  
-  }  
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_1}"
+    destination = "/home/ubuntu/${var.file_name_1}"
+  }
 
-  depends_on = [ aws_instance.server ]
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_2}"
+    destination = "/home/ubuntu/${var.file_name_2}"
+  }
+
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_3}"
+    destination = "/home/ubuntu/${var.file_name_3}"
+  }
+
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_4}"
+    destination = "/home/ubuntu/${var.file_name_4}"
+  }
+
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_5}"
+    destination = "/home/ubuntu/${var.file_name_5}"
+  }
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_6}"
+    destination = "/home/ubuntu/${var.file_name_6}"
+  }
+
+
+  depends_on = [aws_instance.server]
 }
-
-
 
 
 resource "null_resource" "remote" {
@@ -180,13 +236,44 @@ resource "null_resource" "remote" {
     script = "scripts/${var.script_path}"  
   }  
 
-  depends_on = [ null_resource.copy_file ]
+  depends_on = [ aws_instance.server ]
 }
 
 
-/*
-resource "null_resource" "apply_manifest" {
-  count = var.is_master ? 1 : 0
+
+resource "null_resource" "copy-file-from-master" {
+  count             = var.is_master ? 1 : 0
+
+    connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/.ssh/id_rsa")
+    host        = aws_instance.server.public_ip
+  }
+
+    provisioner "local-exec" {
+    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_instance.server.public_ip}:/home/ubuntu/kubeadm_join.txt /home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+  }
+    provisioner "local-exec" {
+    command = <<EOT
+      while [ ! -s /home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt ]; do
+        echo "Waiting for kubeadm_join.txt to be non-empty..."
+        sleep 2
+      done
+    EOT
+  }
+
+  
+
+
+  depends_on = [ aws_instance.server ,null_resource.remote]
+}
+
+
+
+
+resource "null_resource" "copy-file-to-prometheus-and-execute" {
+  count = var.is_prom ? 1 : 0
 
   connection {
     type        = "ssh"
@@ -195,11 +282,47 @@ resource "null_resource" "apply_manifest" {
     host        = aws_instance.server.public_ip
   }
 
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+    destination = "/home/ubuntu/kubeadm_join.txt"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "kubectl apply -f /home/ubuntu/k8s-manifest.yaml"  # Apply the Kubernetes manifest file
+      "sudo $(cat /home/ubuntu/kubeadm_join.txt)"
     ]
   }
 
-  depends_on = [null_resource.copy_file]  # Ensure the file is copied before applying
-}*/
+
+  depends_on = [ aws_instance.server ,null_resource.copy-file-from-master]
+}
+
+
+
+resource "null_resource" "copy-file-to-worker-and-execute" {
+  count = var.is_worker ? 1 : 0
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/.ssh/id_rsa")
+    host        = aws_instance.server.public_ip
+  }
+
+  provisioner "file" {
+    source      = "/home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+    destination = "/home/ubuntu/kubeadm_join.txt"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo $(cat /home/ubuntu/kubeadm_join.txt)"
+    ]
+  }
+
+
+  depends_on = [ aws_instance.server, null_resource.copy-file-from-master]
+}
+
+
+
