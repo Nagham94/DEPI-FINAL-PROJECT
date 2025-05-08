@@ -1,5 +1,5 @@
 # Use Node.js image based on Alpine Linux as a base image
-FROM node:18-alpine3.17
+FROM node:lts-alpine3.21
 
 # the working directory inside the container
 WORKDIR /usr/app
@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # command to run the application
-CMD [ "npm", "start" ]
+CMD [ "npm", "start" ] 
