@@ -78,7 +78,7 @@ resource "null_resource" "apply_k8s_manifests" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("/home/agent/.ssh/id_rsa")
     host        = module.master.server_ip  
   }
 
