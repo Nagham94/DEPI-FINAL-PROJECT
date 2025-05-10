@@ -6,15 +6,15 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "my-depi-bucket-mostafa"
+    bucket = "my-depi-bucket-nagham"
     key = "my-depi-state-file"
-    region = "us-east-1"
+    region = "us-east-2"
     
   }
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-2"
   
 }
 

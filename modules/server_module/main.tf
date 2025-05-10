@@ -33,7 +33,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_subnet" "subnet_server" {
   vpc_id            = data.aws_vpc.default.id
   cidr_block        = var.subnet_cidr_block
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-2"
   tags = {
   name = "subnet_server_${var.server_name}"
   }
@@ -161,7 +161,7 @@ resource "aws_instance" "server" {
   instance_type          = "${var.instance_type}"
   key_name               = aws_key_pair.server_key.key_name
   vpc_security_group_ids = [aws_security_group.k8s_cluster_sg.id]
-  subnet_id       = "subnet-0691c6585c0c3439e"
+  subnet_id       = "subnet-0692f16bbb6f06ccd"
   associate_public_ip_address = true
   tags = {
     Name = "${var.server_name}-server"
@@ -190,31 +190,31 @@ resource "null_resource" "copy_all_files" {
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_1}"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_1}"
     destination = "/home/ubuntu/${var.file_name_1}"
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_2}"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_2}"
     destination = "/home/ubuntu/${var.file_name_2}"
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_3}"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_3}"
     destination = "/home/ubuntu/${var.file_name_3}"
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_4}"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_4}"
     destination = "/home/ubuntu/${var.file_name_4}"
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_5}"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_5}"
     destination = "/home/ubuntu/${var.file_name_5}"
   }
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_6}"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/deploy_all_files/${var.file_name_6}"
     destination = "/home/ubuntu/${var.file_name_6}"
   }
 
@@ -252,11 +252,11 @@ resource "null_resource" "copy-file-from-master" {
   }
 
     provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_instance.server.public_ip}:/home/ubuntu/kubeadm_join.txt /home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_instance.server.public_ip}:/home/ubuntu/kubeadm_join.txt /home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt"
   }
     provisioner "local-exec" {
     command = <<EOT
-      while [ ! -s /home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt ]; do
+      while [ ! -s /home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt ]; do
         echo "Waiting for kubeadm_join.txt to be non-empty..."
         sleep 2
       done
@@ -283,7 +283,7 @@ resource "null_resource" "copy-file-to-prometheus-and-execute" {
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt"
     destination = "/home/ubuntu/kubeadm_join.txt"
   }
 
@@ -310,7 +310,7 @@ resource "null_resource" "copy-file-to-worker-and-execute" {
   }
 
   provisioner "file" {
-    source      = "/home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+    source      = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt"
     destination = "/home/ubuntu/kubeadm_join.txt"
   }
 
