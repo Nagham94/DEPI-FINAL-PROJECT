@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_REPO = 'nagham94' 
         GIT_REPO_URL = 'https://github.com/Nagham94/DEPI-FINAL-PROJECT.git'  
-        BRANCH_NAME = "jenkins"
+        BRANCH_NAME = "final-nagham"
         TECHNOLOGY_NAME = "solar-app-backend"
     }
 

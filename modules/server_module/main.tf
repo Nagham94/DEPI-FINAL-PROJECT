@@ -173,7 +173,7 @@ resource "aws_instance" "server" {
 
 resource "aws_key_pair" "server_key" {
   key_name   = "${var.server_name}-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("/home/agent/.ssh/id_rsa.pub")
 }
 
 
@@ -185,7 +185,7 @@ resource "null_resource" "copy_all_files" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("/home/agent/.ssh/id_rsa")
     host        = aws_instance.server.public_ip
   }
 
