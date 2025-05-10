@@ -228,7 +228,7 @@ resource "null_resource" "remote" {
     connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("/home/agent/.ssh/id_rsa")
     host        = aws_instance.server.public_ip
   }
 
@@ -247,7 +247,7 @@ resource "null_resource" "copy-file-from-master" {
     connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("/home/agent/.ssh/id_rsa")
     host        = aws_instance.server.public_ip
   }
 
@@ -278,7 +278,7 @@ resource "null_resource" "copy-file-to-prometheus-and-execute" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("/home/agent/.ssh/id_rsa")
     host        = aws_instance.server.public_ip
   }
 
@@ -305,7 +305,7 @@ resource "null_resource" "copy-file-to-worker-and-execute" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("/home/agent/.ssh/id_rsa")
     host        = aws_instance.server.public_ip
   }
 
