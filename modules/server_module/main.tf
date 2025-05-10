@@ -252,7 +252,7 @@ resource "null_resource" "copy-file-from-master" {
   }
 
     provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_instance.server.public_ip}:/home/ubuntu/kubeadm_join.txt /home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+    command = "scp -i /home/agent/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_instance.server.public_ip}:/home/ubuntu/kubeadm_join.txt /home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt"
   }
     provisioner "local-exec" {
     command = <<EOT
