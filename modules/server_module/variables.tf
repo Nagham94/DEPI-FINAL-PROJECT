@@ -78,5 +78,16 @@ variable "is_prom" {
 }
 
 
+variable "is_last_resource" {
+  type    = bool
+  default = false
+}
 
 
+
+
+
+
+variable "local_kubeadm_path" {
+  default = "/home/msmm/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+}
