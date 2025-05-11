@@ -1,36 +1,24 @@
 #!/bin/bash
 sudo hostnamectl set-hostname solar-node
+
+
 # Log file path
 LOG_FILE="kubernetes_setup_log.txt"
+
+
 
 # Disable swap
 sudo swapoff -a
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
 
-# Check if lsb_release is installed
-if ! command -v lsb_release &> /dev/null; then
-  echo "lsb_release command is not installed. Please install it to continue."
-  exit 1
-fi
 
-# Check for necessary commands
-commands=(curl tee modprobe sysctl apt-key)
-for cmd in "${commands[@]}"; do
-  if ! command -v $cmd &> /dev/null; then
-    echo "$cmd is not installed. Please install it to continue."
-    exit 1
-  fi
-done
 
-# Cool ASCII art for the script header - Happy Smiley Face
-cat << "EOF"
-:-) Kubernetes Cluster Setup :-)
-
-EOF
 
 # Update and upgrade the system
 echo "Updating and upgrading system..."
 sudo apt-get update && sudo apt-get upgrade -y
+
+
 
 # Load the Kernel modules on all the nodes
 echo "Loading required kernel modules..."
@@ -50,8 +38,18 @@ net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
 
+
 # Reload the system changes
 sudo sysctl --system
+
+
+# ADD HERE: Set iptables legacy and stop firewall
+sudo systemctl stop firewalld
+sudo systemctl disable firewalld
+sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+
+
 sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 sudo mkdir -p -m 755 /etc/apt/keyrings
@@ -82,6 +80,7 @@ sudo apt-get install -y containerd
 sudo systemctl enable containerd
 sudo systemctl start containerd
 
+sudo apt-get install -y docker.io
 
 
 
