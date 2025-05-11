@@ -114,6 +114,7 @@ pipeline {
           message: """ 
           *Build Status:* ${status}
           *App URL:* http://${workerIp}:30004
+          *Prometheus URL:* http://${prometheusIp}:30090
           *Master IP:* ${masterIp}
           *Worker IP:* ${workerIp}
           *Prometheus IP:* ${prometheusIp}
