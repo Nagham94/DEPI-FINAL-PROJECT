@@ -1,3 +1,36 @@
+---
+# Persistent Volume (PV)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+  namespace: solar-app
+spec:
+  capacity:
+    storage: 5Gi  
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce  
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data/mongo  
+---
+# Persistent Volume Claim (PVC) 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+  namespace: solar-app
+spec:
+  accessModes:
+    - ReadWriteOnce  
+  resources:
+    requests:
+      storage: 5Gi  
+  storageClassName: manual
+---
+# MongoDB service
 apiVersion: v1
 kind: Service
 metadata:
@@ -27,8 +60,6 @@ spec:
       labels:
         app: mongo
     spec:
-      nodeSelector:
-        role: solar
       containers:
         - name: mongo
           image: mongo:8.0.5
@@ -47,10 +78,11 @@ spec:
                   key: MONGO_INITDB_ROOT_PASSWORD
           volumeMounts:
             - name: mongodb-data
-              mountPath: /data/db
+              mountPath: /data/db  
       volumes:
         - name: mongodb-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: mongo-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -83,8 +115,6 @@ spec:
       labels:
         app: backend
     spec:
-      nodeSelector:
-        role: solar
       containers:
         - name: backend
           image: nagham94/solar-app-backend:latest
