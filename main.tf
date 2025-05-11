@@ -19,8 +19,6 @@ provider "aws" {
 }
 
 
-
-
 module "master" {
     source = "./modules/server_module"
     server_name = "master"
@@ -49,7 +47,6 @@ module "worker" {
     is_prom = false
     instance_type = "t2.medium"
     depends_on = [ module.master ]
-
 }
 
 
@@ -66,14 +63,8 @@ module "prometheus_server" {
 }
 
 
-variable "is_master" {
-  type    = bool
-  default = false
-}
-
 
 resource "null_resource" "apply_k8s_manifests" {
-
 
   connection {
     type        = "ssh"
@@ -92,21 +83,3 @@ resource "null_resource" "apply_k8s_manifests" {
     module.prometheus_server
   ]
 }
-
-
-# kubeadm token create --print-join-command
-#sudo ssh ubuntu@ "sudo cp /home/ubuntu/file_join /home/ubuntu"
-
-
-#sudo ssh ubuntu@ "sudo chown ubuntu:ubuntu /home/ubuntu/file_join"
-#scp ubuntu@:/home/ubuntu/file_join join
-
-
-
-# scp ubuntu@54.165.58.83:/home/ubuntu/kubeadm_join.txt kubeadm_join.txt  from remote to local 
-
-
-#scp kubeadm_join.txt ubuntu@52.203.18.162:/home/ubuntu/
-
-#ssh ubuntu@52.203.18.162 "sudo bash /home/ubuntu/kubeadm_join.txt"
-# kubectl get all -A  # Shows pods, services, deployments, etc. in all namespaces

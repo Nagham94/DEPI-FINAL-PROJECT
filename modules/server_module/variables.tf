@@ -78,5 +78,16 @@ variable "is_prom" {
 }
 
 
+variable "is_last_resource" {
+  type    = bool
+  default = false
+}
 
 
+
+
+
+
+variable "local_kubeadm_path" {
+  default = "/home/agent/Desktop/depi-final/aws-terra/DEPI-FINAL-PROJECT/kubeadm_join.txt"
+}
